@@ -1,0 +1,3 @@
+import type {Metadata} from 'next'; import './globals.css'; import {Header} from '@/components/header'; import {Footer} from '@/components/footer';
+export const metadata:Metadata={title:{default:'Toghar — Find your people. Find your place.',template:'%s | Toghar'},description:'Find and book verified hostels in Hyderabad. Flexible stays for a night or a month.',openGraph:{title:'Toghar',description:'Find your people. Find your place.',images:['/brand/logo.png']},icons:{icon:'/brand/logo.png'}};
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><Header/><main>{children}</main><Footer/></body></html>}

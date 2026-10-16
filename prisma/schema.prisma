@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  guest
+  owner
+  admin
+}
+
+enum BookingStatus {
+  held
+  confirmed
+  checked_in
+  completed
+  cancelled
+  refunded
+}
+
+enum VerificationStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  phone     String?
+  name      String
+  role      Role      @default(guest)
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+  reviews   Review[]
+}
+
+model College {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  area      String
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+
+  @@index([area])
+}
+
+model Hostel {
+  id                 String             @id @default(cuid())
+  slug               String             @unique
+  name               String
+  area               String
+  address            String
+  description        String
+  genderPolicy       String
+  foodIncluded       Boolean            @default(false)
+  foodDetails        String?
+  verified           Boolean            @default(false)
+  verificationStatus VerificationStatus @default(pending)
+  cancellationPolicy String             @default("moderate")
+  latitude           Float
+  longitude          Float
+  coverImage         String
+  amenities          String[]
+  createdAt          DateTime           @default(now())
+  rooms              Room[]
+  reviews            Review[]
+
+  @@index([area, verified])
+}
+
+model Room {
+  id         String          @id @default(cuid())
+  hostelId   String
+  type       String
+  label      String
+  priceNight Int
+  priceMonth Int
+  minMonths  Int             @default(1)
+  deposit    Int             @default(0)
+  totalBeds  Int
+  hostel     Hostel          @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  beds       Bed[]
+  overrides  PriceOverride[]
+}
+
+model Bed {
+  id       String    @id @default(cuid())
+  roomId   String
+  room     Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+}
+
+model PriceOverride {
+  id         String   @id @default(cuid())
+  roomId     String
+  startsAt   DateTime
+  endsAt     DateTime
+  priceNight Int?
+  priceMonth Int?
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, startsAt, endsAt])
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  bedId          String
+  guestId        String
+  status         BookingStatus @default(held)
+  startDate      DateTime
+  endDate        DateTime
+  amount         Int
+  deposit        Int           @default(0)
+  holdExpiresAt  DateTime?
+  paymentRef     String?
+  idempotencyKey String?       @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  bed            Bed           @relation(fields: [bedId], references: [id])
+  guest          User          @relation(fields: [guestId], references: [id])
+
+  @@index([bedId, startDate, endDate, status])
+  @@index([status, holdExpiresAt])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  hostelId    String
+  guestId     String
+  cleanliness Int
+  safety      Int
+  food        Int
+  value       Int
+  comment     String
+  createdAt   DateTime @default(now())
+  hostel      Hostel   @relation(fields: [hostelId], references: [id])
+  guest       User     @relation(fields: [guestId], references: [id])
+
+  @@index([hostelId, createdAt])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  eventType   String
+  processedAt DateTime @default(now())
+}

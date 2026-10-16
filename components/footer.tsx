@@ -1,0 +1,2 @@
+import Link from 'next/link'; import {Logo} from './logo';
+export function Footer(){return <footer><div className="wrap footer"><div><Logo small/><p>Find your people. Find your place.</p></div><div className="footer-links"><Link href="/">About</Link><a href="mailto:hello@toghar.in">Contact</a><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#refund">Refund policy</a></div><small>© 2026 Toghar. Made for finding your place.</small></div></footer>}

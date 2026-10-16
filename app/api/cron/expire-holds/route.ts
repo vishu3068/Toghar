@@ -1,0 +1,2 @@
+import {NextResponse} from 'next/server'; import {PrismaClient} from '@prisma/client';
+const prisma=new PrismaClient();export async function GET(req:Request){if(req.headers.get('authorization')!==`Bearer ${process.env.CRON_SECRET}`)return NextResponse.json({error:'Unauthorized'},{status:401});const result=await prisma.booking.updateMany({where:{status:'held',holdExpiresAt:{lt:new Date()}},data:{status:'cancelled'}});return NextResponse.json({expired:result.count})}

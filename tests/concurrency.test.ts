@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest';import {available} from './pricing.test';
+describe('availability race guard',()=>{it('only permits one of two simultaneous claims for the same date range',async()=>{let bookings:{start:number;end:number;status:string}[]=[];const claim=async()=>{await Promise.resolve();if(!available(bookings,10,20))return false;bookings.push({start:10,end:20,status:'confirmed'});return true};const results=await Promise.all([claim(),claim()]);expect(results.filter(Boolean)).toHaveLength(1)})});
